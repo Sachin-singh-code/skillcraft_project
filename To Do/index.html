@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Remindly Pro</title>
+
+<style>
+:root{
+  --bg:#f2f2f7;
+  --card:#ffffff;
+  --text:#1c1c1e;
+}
+
+body.dark{
+  --bg:#1c1c1e;
+  --card:#2c2c2e;
+  --text:#f2f2f7;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
+}
+
+body{
+  background:var(--bg);
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  transition:0.3s;
+}
+
+.app{
+  width:1100px;
+  height:680px;
+  background:var(--card);
+  border-radius:24px;
+  display:flex;
+  box-shadow:0 40px 80px rgba(0,0,0,0.15);
+  overflow:hidden;
+  transition:0.3s;
+}
+
+
+.sidebar{
+  width:280px;
+  background:linear-gradient(180deg,#4facfe,#00f2fe);
+  padding:30px 20px;
+  color:#fff;
+}
+
+.sidebar h2{
+  margin-bottom:20px;
+  font-weight:600;
+}
+
+.list{
+  padding:12px 15px;
+  border-radius:14px;
+  margin-bottom:12px;
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  transition:0.3s;
+}
+
+.list:hover{
+  background:rgba(255,255,255,0.2);
+}
+
+.list.active{
+  background:rgba(255,255,255,0.35);
+}
+
+
+.main{
+  flex:1;
+  padding:35px;
+  display:flex;
+  flex-direction:column;
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:25px;
+}
+
+.top h1{
+  font-size:32px;
+  font-weight:600;
+  color:var(--text);
+}
+
+.toggle{
+  cursor:pointer;
+  padding:8px 14px;
+  border-radius:20px;
+  border:none;
+  background:#007aff;
+  color:#fff;
+}
+
+.progress-ring{
+  width:90px;
+  height:90px;
+}
+
+circle{
+  fill:none;
+  stroke-width:8;
+}
+
+.track{
+  stroke:#ddd;
+}
+
+.progress{
+  stroke:#007aff;
+  stroke-linecap:round;
+  transition:0.4s;
+}
+
+
+.add{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.add input{
+  flex:1;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #ddd;
+  outline:none;
+}
+
+.add input[type="date"]{
+  max-width:150px;
+}
+
+.add button{
+  padding:14px 20px;
+  border-radius:14px;
+  border:none;
+  background:#007aff;
+  color:#fff;
+  cursor:pointer;
+}
+
+
+.tasks{
+  flex:1;
+  overflow-y:auto;
+}
+
+.task{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px;
+  border-radius:16px;
+  margin-bottom:12px;
+  background:rgba(0,0,0,0.03);
+  transition:0.3s;
+  cursor:grab;
+}
+
+body.dark .task{
+  background:rgba(255,255,255,0.05);
+}
+
+.task:hover{
+  transform:scale(1.02);
+}
+
+.task-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.check{
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  border:2px solid #007aff;
+  cursor:pointer;
+}
+
+.completed .check{
+  background:#007aff;
+}
+
+.completed span{
+  text-decoration:line-through;
+  opacity:0.6;
+}
+
+.date{
+  font-size:12px;
+  opacity:0.6;
+}
+
+.actions button{
+  border:none;
+  background:none;
+  cursor:pointer;
+  font-size:18px;
+  margin-left:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="sidebar">
+    <h2>My Lists</h2>
+    <div class="list active">Reminders <span id="count"></span></div>
+    <div class="list">Today</div>
+    <div class="list">Scheduled</div>
+  </div>
+
+  <div class="main">
+    <div class="top">
+      <h1>Reminders</h1>
+      <button class="toggle" onclick="toggleTheme()">🌙</button>
+    </div>
+
+    <svg class="progress-ring">
+      <circle class="track" cx="45" cy="45" r="35"></circle>
+      <circle class="progress" cx="45" cy="45" r="35"
+        stroke-dasharray="220"
+        stroke-dashoffset="220"
+        id="progressCircle"></circle>
+    </svg>
+
+    <div class="add">
+      <input type="text" id="taskInput" placeholder="Add reminder...">
+      <input type="date" id="taskDate">
+      <button onclick="addTask()">Add</button>
+    </div>
+
+    <div class="tasks" id="taskList"></div>
+
+  </div>
+</div>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem("ultraReminders")) || [];
+
+function save(){
+  localStorage.setItem("ultraReminders", JSON.stringify(tasks));
+}
+
+function toggleTheme(){
+  document.body.classList.toggle("dark");
+}
+
+function addTask(){
+  const text=document.getElementById("taskInput").value;
+  const date=document.getElementById("taskDate").value;
+  if(!text.trim()) return;
+
+  tasks.push({
+    id:Date.now(),
+    text,
+    date,
+    completed:false
+  });
+
+  document.getElementById("taskInput").value="";
+  save();
+  render();
+}
+
+function toggleTask(id){
+  tasks=tasks.map(t=>t.id===id?{...t,completed:!t.completed}:t);
+  save();
+  render();
+}
+
+function deleteTask(id){
+  tasks=tasks.filter(t=>t.id!==id);
+  save();
+  render();
+}
+
+function render(){
+  const list=document.getElementById("taskList");
+  list.innerHTML="";
+  let completed=0;
+
+  tasks.forEach(task=>{
+    if(task.completed) completed++;
+
+    const div=document.createElement("div");
+    div.className="task"+(task.completed?" completed":"");
+
+    div.innerHTML=`
+      <div class="task-left">
+        <div class="check" onclick="toggleTask(${task.id})"></div>
+        <div>
+          <span>${task.text}</span>
+          <div class="date">${task.date || ""}</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button onclick="deleteTask(${task.id})">🗑</button>
+      </div>
+    `;
+
+    list.appendChild(div);
+  });
+
+  document.getElementById("count").textContent=tasks.length;
+
+  const percent = tasks.length ? (completed/tasks.length)*220 : 220;
+  document.getElementById("progressCircle")
+    .style.strokeDashoffset = 220 - percent;
+}
+
+render();
+</script>
+
+</body>
+</html>
