@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stopwatch</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+.stopwatch-container {
+    max-width: 300px;
+    margin: 40px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.display {
+    font-size: 48px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: #fff;
+    cursor: pointer;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#lap-list {
+    list-style: none;
+    padding: 0;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Stopwatch</h1>
+
+<div class="stopwatch-container">
+    <div class="display">
+        <span id="hours">00</span>:
+        <span id="minutes">00</span>:
+        <span id="seconds">00</span>
+    </div>
+
+    <button id="start-btn">Start</button>
+    <button id="pause-btn" disabled>Pause</button>
+    <button id="reset-btn">Reset</button>
+    <button id="lap-btn">Lap</button>
+
+    <h2>Laps</h2>
+    <ul id="lap-list"></ul>
+</div>
+
+<script>
+let hours = 0;
+let minutes = 0;
+let seconds = 0;
+let intervalId = null;
+let lapCount = 0;
+
+const startBtn = document.getElementById('start-btn');
+const pauseBtn = document.getElementById('pause-btn');
+const resetBtn = document.getElementById('reset-btn');
+const lapBtn = document.getElementById('lap-btn');
+const lapList = document.getElementById('lap-list');
+
+const displayHours = document.getElementById('hours');
+const displayMinutes = document.getElementById('minutes');
+const displaySeconds = document.getElementById('seconds');
+
+startBtn.addEventListener('click', startTimer);
+pauseBtn.addEventListener('click', pauseTimer);
+resetBtn.addEventListener('click', resetTimer);
+lapBtn.addEventListener('click', lapTimer);
+
+function startTimer() {
+    if (intervalId) return;
+
+    intervalId = setInterval(() => {
+        seconds++;
+        if (seconds === 60) {
+            minutes++;
+            seconds = 0;
+        }
+        if (minutes === 60) {
+            hours++;
+            minutes = 0;
+        }
+        displayTime();
+    }, 1000);
+
+    startBtn.disabled = true;
+    pauseBtn.disabled = false;
+}
+
+function pauseTimer() {
+    clearInterval(intervalId);
+    intervalId = null;
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+}
+
+function resetTimer() {
+    clearInterval(intervalId);
+    intervalId = null;
+
+    hours = 0;
+    minutes = 0;
+    seconds = 0;
+    lapCount = 0;
+
+    displayTime();
+    lapList.innerHTML = '';
+
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+}
+
+function lapTimer() {
+    const lapTime = `${hours.toString().padStart(2, '0')}:${minutes
+        .toString().padStart(2, '0')}:${seconds
+        .toString().padStart(2, '0')}`;
+
+    lapCount++;
+    lapList.innerHTML += `<li>Lap ${lapCount}: ${lapTime}</li>`;
+}
+
+function displayTime() {
+    displayHours.innerHTML = hours.toString().padStart(2, '0');
+    displayMinutes.innerHTML = minutes.toString().padStart(2, '0');
+    displaySeconds.innerHTML = seconds.toString().padStart(2, '0');
+}
+</script>
+
+</body>
+</html>
